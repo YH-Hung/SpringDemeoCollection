@@ -1,0 +1,31 @@
+databases:
+  postgres:
+    dsn:
+      dialect: postgresql
+      user: postgres
+      password: postgres
+      host: host.docker.internal
+      port: 5432
+      database: postgres
+
+metrics:
+  job_data_time:
+    type: gauge
+    description: from data table
+    labels: ['job-name', 'side']
+  job_record_time:
+    type: gauge
+    description: from record table
+    labels: [ 'job-name', 'side' ]
+
+queries:
+  left-go-deep-data:
+    interval: 5s
+    databases: [postgres]
+    metrics: [job_delay_time]
+    sql: |
+      select date_part('epoch', data_time) as job_data_time,
+      'Go Deep' as job-name
+      from job_data_left where category = :category;
+    parameters:
+      - category: 'Go Deep'

@@ -1,5 +1,12 @@
 services:
 
+  query-exporter:
+    image: adonato/query-exporter:latest
+    volumes:
+      - ./query-exporter.yaml:/etc/query-exporter.yaml
+    environment:
+      - QE_CONFIG=/etc/query-exporter.yaml
+
   prometheus:
     image: prom/prometheus:latest
     command:
