@@ -1,10 +1,9 @@
 package hle.etlagent;
 
-import hle.etlagent.dao.ProductInspRepo;
-import hle.etlagent.dao.ProductRepo;
-import hle.etlagent.dao.ProductWorkflowAdoptRepo;
-import hle.etlagent.model.TimeWindow;
-import hle.etlagent.service.InspectProcessor;
+import hle.etlagent.dao.jpa.inline.ProductInspectRepository;
+import hle.etlagent.dao.jpa.litho.ProductRepository;
+import hle.etlagent.dao.jpa.litho.ProductWorkflowAdoptRepository;
+import hle.etlagent.entity.litho.ProductWorkflowAdopt;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,12 +16,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDateTime;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("resource")
 @Testcontainers // @Testcontainers + @Container = start before all + stop after all
 @SpringBootTest
-class EtlagentApplicationTests {
+class EtlagentJpaApplicationTests {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
@@ -44,16 +43,14 @@ class EtlagentApplicationTests {
     }
 
     @Autowired
-    ProductInspRepo inspRepo;
+    ProductInspectRepository inspRepo;
 
     @Autowired
-    ProductWorkflowAdoptRepo adoptRepo;
+    ProductWorkflowAdoptRepository adoptRepo;
 
     @Autowired
-    ProductRepo productRepo;
+    ProductRepository productRepo;
 
-    @Autowired
-    InspectProcessor inspectProcessor;
 
     @Test
     void contextLoads() {
@@ -67,7 +64,7 @@ class EtlagentApplicationTests {
 
     @Test
     void lithoDbConnects() {
-        var result = productRepo.getIds();
+        var result = productRepo.findAll();
         assertThat(result).hasSize(10);
     }
 
@@ -75,8 +72,18 @@ class EtlagentApplicationTests {
     void inlineToLithoFetch() {
         var from = LocalDateTime.of(2023, 9, 12, 0, 0, 0);
         var to = LocalDateTime.of(2023, 9, 13, 0, 0, 0);
-        inspectProcessor.fetchInspRawByWindow(new TimeWindow(from, to));
-        var result = adoptRepo.findByWindow(from, to);
+        var inspRaws = inspRepo.findAllByInspectDateBetween(from, to);
+        var adopts = inspRaws.stream().map(insp -> {
+            var entity = new ProductWorkflowAdopt();
+            entity.setProduct(productRepo.findById(insp.getProductId()).get());
+            entity.setInspectDate(insp.getInspectDate());
+            entity.setCreateDate(LocalDateTime.now());
+            entity.setLastModifiedDate(LocalDateTime.now());
+
+            return entity;
+        }).toList();
+
+        var result = adoptRepo.saveAll(adopts);
 
         assertThat(result).hasSize(24);
     }
