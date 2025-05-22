@@ -23,7 +23,9 @@ public class MailServiceImpl implements MailService {
         var helper = new MimeMessageHelper(mimeMsg);
         helper.setFrom(dto.getFrom());
         helper.setTo(dto.getTo());
-        helper.setCc(dto.getCc());
+        if (dto.getCc() != null && !dto.getCc().isEmpty()) {
+            helper.setCc(dto.getCc());
+        }
         helper.setSubject(dto.getSubject());
         helper.setText(dto.getText());
 
