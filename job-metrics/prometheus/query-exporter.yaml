@@ -25,7 +25,7 @@ queries:
     metrics: [job_delay_time]
     sql: |
       select date_part('epoch', data_time) as job_data_time,
-      'Go Deep' as job-name
+      'Go Deep' as job-name, 'left' as side
       from job_data_left where category = :category;
     parameters:
       - category: 'Go Deep'
