@@ -12,20 +12,90 @@ metrics:
   job_data_time:
     type: gauge
     description: from data table
-    labels: ['job-name', 'side']
+    labels: [job_name, side]
   job_record_time:
     type: gauge
     description: from record table
-    labels: [ 'job-name', 'side' ]
+    labels: [ job_name, side ]
 
 queries:
   left-go-deep-data:
     interval: 5s
     databases: [postgres]
-    metrics: [job_delay_time]
+    metrics: [job_data_time]
     sql: |
-      select date_part('epoch', data_time) as job_data_time,
-      'Go Deep' as job-name, 'left' as side
+      select date_part('epoch', max(data_time)) as job_data_time,
+      'Go Deep' as job_name, 'left' as side
       from job_data_left where category = :category;
     parameters:
-      - category: 'Go Deep'
+      - category: "Go Deep"
+  left-go-deep-record:
+    interval: 5s
+    databases: [ postgres ]
+    metrics: [ job_record_time ]
+    sql: |
+      select date_part('epoch', max(data_time)) as job_record_time,
+      'Go Deep' as job_name, 'left' as side
+      from job_record_left where category = :category;
+    parameters:
+      - category: "Go Deep"
+  right-go-deep-data:
+    interval: 5s
+    databases: [ postgres ]
+    metrics: [ job_data_time ]
+    sql: |
+      select date_part('epoch', max(data_time)) as job_data_time,
+      'Go Deep' as job_name, 'right' as side
+      from job_data_right where category = :category;
+    parameters:
+      - category: "Go Deep"
+  right-go-deep-record:
+    interval: 5s
+    databases: [ postgres ]
+    metrics: [ job_record_time ]
+    sql: |
+      select date_part('epoch', max(data_time)) as job_record_time,
+      'Go Deep' as job_name, 'right' as side
+      from job_record_right where category = :category;
+    parameters:
+      - category: "Go Deep"
+  left-squeeze-nn-data:
+    interval: 5s
+    databases: [ postgres ]
+    metrics: [ job_data_time ]
+    sql: |
+      select date_part('epoch', max(data_time)) as job_data_time,
+      'Squeeze nn' as job_name, 'left' as side
+      from job_data_left where category = :category;
+    parameters:
+      - category: "Squeeze nn"
+  left-squeeze-nn-record:
+    interval: 5s
+    databases: [ postgres ]
+    metrics: [ job_record_time ]
+    sql: |
+      select date_part('epoch', max(data_time)) as job_record_time,
+      'Squeeze nn' as job_name, 'left' as side
+      from job_record_left where category = :category;
+    parameters:
+      - category: "Squeeze nn"
+  right-squeeze-nn-data:
+    interval: 5s
+    databases: [ postgres ]
+    metrics: [ job_data_time ]
+    sql: |
+      select date_part('epoch', max(data_time)) as job_data_time,
+      'Squeeze nn' as job_name, 'right' as side
+      from job_data_right where category = :category;
+    parameters:
+      - category: "Squeeze nn"
+  right-squeeze-nn-record:
+    interval: 5s
+    databases: [ postgres ]
+    metrics: [ job_record_time ]
+    sql: |
+      select date_part('epoch', max(data_time)) as job_record_time,
+      'Squeeze nn' as job_name, 'right' as side
+      from job_record_right where category = :category;
+    parameters:
+      - category: "Squeeze nn"
